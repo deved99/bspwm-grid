@@ -17,6 +17,12 @@ pub fn focus_desktop(n: usize) -> Result<()> {
     Ok(())
 }
 
+pub fn send_to_desktop(n: usize) -> Result<()> {
+    let s = n.to_string();
+    Command::new(BSPC).args(["node", "--to-desktop", &s]).status()?;
+    Ok(())
+}
+
 pub fn get_monitors() -> Result<Vec<String>> {
     let cmd = Command::new(BSPC)
         .args(["query", "-M", "--names"])

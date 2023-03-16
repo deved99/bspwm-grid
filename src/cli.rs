@@ -18,6 +18,7 @@ impl Cli {
 enum Subcommands {
     GetDesktop(GetDesktop),
     FocusDesktop(FocusDesktop),
+    SendToDesktop(SendToDesktop),
     SetDesktops(SetDesktops),
 }
 impl Subcommands {
@@ -25,6 +26,7 @@ impl Subcommands {
         match self {
             Self::GetDesktop(_) => actions::get_desktop(),
             Self::FocusDesktop(x) => x.run(),
+            Self::SendToDesktop(x) => x.run(),
             Self::SetDesktops(_) => actions::set_monitors(),
         }
     }
@@ -45,6 +47,19 @@ struct FocusDesktop {
 impl FocusDesktop {
     fn run(&self) -> Result<()> {
         actions::focus_desktop(self.x)
+    }
+}
+
+#[derive(FromArgs, PartialEq, Debug)]
+/// Get currently focused desktop.
+#[argh(subcommand, name = "send-to-desktop")]
+struct SendToDesktop {
+    #[argh(positional)]
+    x: usize
+}
+impl SendToDesktop {
+    fn run(&self) -> Result<()> {
+        actions::send_to_desktop(self.x)
     }
 }
 

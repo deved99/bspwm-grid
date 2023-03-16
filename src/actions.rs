@@ -16,6 +16,14 @@ pub fn focus_desktop(x: usize) -> Result<()> {
     bspc::focus_desktop(ws.to_usize())
 }
 
+pub fn send_to_desktop(x: usize) -> Result<()> {
+    let n = bspc::get_focused_desktop()?;
+    let ws = desktop::Desktop::from_usize(n)
+        .with_column(x);
+    bspc::send_to_desktop(ws.to_usize())
+}
+
+
 pub fn set_monitors() -> Result<()> {
     let monitors = bspc::get_monitors()?;
     for (n, monitor) in monitors.iter().enumerate() {
