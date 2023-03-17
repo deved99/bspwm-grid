@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use itertools::iproduct;
 
-use super::{bspc, desktop, Error, Result, COLUMNS, ROWS};
+use crate::{bspc, desktop, Error, Result, COLUMNS, ROWS};
 
 pub fn watch_desktop() -> Result<()> {
     // Get all desktops
@@ -16,16 +18,21 @@ pub fn watch_desktop() -> Result<()> {
 
 fn print_active_desktops() -> Result<()> {
     // Get current monitors
-    let monitors_str = bspc::get_monitors()?;
-    let monitors = monitors_str.iter().enumerate().map(|(n, _)| n);
-    let desktop = iproduct!(0..COLUMNS, 0..ROWS, monitors)
-        .map(|(x, y, z)| desktop::Desktop::new(x, y, z));
-    // Then add active infos
     let ns = bspc::get_active_desktop()?;
-    let active_desktops: Vec<desktop::DesktopActive> = desktop.map(|w| w.to_active(&ns)).collect();
-    let active_desktops_json = serde_json::to_string(&active_desktops)?;
-    println!("{}", active_desktops_json);
+    let monitors: HashMap<String, Vec<desktop::DesktopActive>> = bspc::get_monitors()?
+        .into_iter()
+        .enumerate()
+        .map(|(z, s)| (s, foo(z, &ns)))
+        .collect();
+    let json = serde_json::to_string(&monitors)?;
+    println!("{}", json);
     Ok(())
+}
+
+fn foo(z: usize, ns: &[usize]) -> Vec<desktop::DesktopActive> {
+    iproduct!(0..COLUMNS, 0..ROWS)
+        .map(|(x, y)| desktop::Desktop::new(x, y, z).to_active(&ns))
+        .collect()
 }
 
 fn column_check(x: usize) -> Result<()> {
