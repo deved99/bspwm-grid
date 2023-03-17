@@ -1,6 +1,12 @@
 use std::process::Command;
 
-use super::{Result, BSPC};
+use super::{Error, Result, BSPC};
+
+pub fn watch_desktop() -> Result<impl Iterator<Item = Result<String>>> {
+    let args = ["subscribe", "desktop"];
+    let lines = super::command_lines(BSPC, &args)?;
+    Ok(lines)
+}
 
 pub fn get_focused_desktop() -> Result<usize> {
     let cmd = Command::new(BSPC)
@@ -11,15 +17,31 @@ pub fn get_focused_desktop() -> Result<usize> {
     Ok(n)
 }
 
+pub fn get_active_desktop() -> Result<Vec<usize>> {
+    let cmd = Command::new(BSPC)
+        .args(["query", "--desktops", "-d", ".active", "--names"])
+        .output()?;
+    let res = String::from_utf8(cmd.stdout)?;
+    // res.trim().parse()?;
+    res.lines()
+        .map(|x| x.trim().parse())
+        .map(|x| x.map_err(Error::from))
+        .collect()
+}
+
 pub fn focus_desktop(n: usize) -> Result<()> {
     let s = n.to_string();
-    Command::new(BSPC).args(["desktop", "--focus", &s]).status()?;
+    Command::new(BSPC)
+        .args(["desktop", "--focus", &s])
+        .status()?;
     Ok(())
 }
 
 pub fn send_to_desktop(n: usize) -> Result<()> {
     let s = n.to_string();
-    Command::new(BSPC).args(["node", "--to-desktop", &s]).status()?;
+    Command::new(BSPC)
+        .args(["node", "--to-desktop", &s])
+        .status()?;
     Ok(())
 }
 
@@ -28,7 +50,8 @@ pub fn get_monitors() -> Result<Vec<String>> {
         .args(["query", "-M", "--names"])
         .output()?;
     let res = String::from_utf8(cmd.stdout)?;
-    let lines = res.lines().map(|s| s.to_string()).collect();
+    let mut lines: Vec<String> = res.lines().map(|s| s.to_string()).collect();
+    lines.sort();
     Ok(lines)
 }
 
