@@ -3,13 +3,14 @@ use std::collections::HashMap;
 use itertools::iproduct;
 
 use crate::{bspc, desktop, Error, Result, COLUMNS, ROWS};
+use crate::monitor_status::MonitorStatus;
 
 pub fn watch_desktop() -> Result<()> {
     // Get all desktops
     print_active_desktops()?;
     // Than watch for changes
     let args = ["subscribe", "desktop"];
-    let lines = super::command_lines("bspc", &args)?;
+    let lines = crate::command_lines("bspc", &args)?;
     for _ in lines {
         print_active_desktops()?;
     }
@@ -18,21 +19,20 @@ pub fn watch_desktop() -> Result<()> {
 
 fn print_active_desktops() -> Result<()> {
     // Get current monitors
-    let ns = bspc::get_active_desktop()?;
-    let monitors: HashMap<String, Vec<desktop::DesktopActive>> = bspc::get_monitors()?
+    let ns: HashMap<usize, (usize, usize)> = bspc::get_active_desktop()?
+        .iter()
+        .map(|x| x.get_coords())
+        .map(|(x,y,z)| (z,(x,y)))
+        .collect();
+    let monitors: HashMap<String, MonitorStatus> = bspc::get_monitors()?
         .into_iter()
         .enumerate()
-        .map(|(z, s)| (s, foo(z, &ns)))
+        .map(|(z, s)| (s, ns[&z]))
+        .map(|(s, (x, y))| (s, MonitorStatus::new(x, y)))
         .collect();
     let json = serde_json::to_string(&monitors)?;
     println!("{}", json);
     Ok(())
-}
-
-fn foo(z: usize, ns: &[usize]) -> Vec<desktop::DesktopActive> {
-    iproduct!(0..COLUMNS, 0..ROWS)
-        .map(|(x, y)| desktop::Desktop::new(x, y, z).to_active(&ns))
-        .collect()
 }
 
 fn column_check(x: usize) -> Result<()> {

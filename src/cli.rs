@@ -1,4 +1,4 @@
-use super::{actions, Result};
+use crate::{actions, Result};
 use argh::FromArgs;
 
 #[derive(FromArgs, PartialEq, Debug)]

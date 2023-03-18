@@ -3,13 +3,15 @@ pub mod bspc;
 mod cli;
 pub mod desktop;
 mod error;
+pub mod monitor_status;
 
 pub use error::{Error, Result};
 
+const BSPC: &'static str = "bspc";
 const ROWS: usize = 1;
 const COLUMNS: usize = 5;
+const COLUMNS_ARRAY: [usize; COLUMNS] = get_columns_array();
 const GRID_AREA: usize = ROWS * COLUMNS;
-const BSPC: &'static str = "bspc";
 
 pub fn main() {
     let args: cli::Cli = argh::from_env();
@@ -26,4 +28,14 @@ pub fn command_lines(cmd: &str, args: &[&str]) -> Result<impl Iterator<Item = Re
     let stdout = BufReader::new(cmd.stdout.unwrap());
     let iter = stdout.lines().map(|x| x.map_err(Error::from));
     Ok(iter)
+}
+
+const fn get_columns_array() -> [usize; COLUMNS] {
+    let mut res = [0; COLUMNS];
+    let mut i = 0;
+    while i < COLUMNS {
+        res[i] = i;
+        i += 1;
+    }
+    res
 }

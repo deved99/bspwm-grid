@@ -1,5 +1,4 @@
-use super::{COLUMNS, GRID_AREA, ROWS};
-use serde::Serialize;
+use crate::{COLUMNS, GRID_AREA, ROWS};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Desktop {
@@ -11,6 +10,10 @@ pub struct Desktop {
 impl Desktop {
     pub fn new(x: usize, y: usize, z: usize) -> Self {
         Self { x, y, z }
+    }
+
+    pub fn get_coords(&self) -> (usize, usize, usize) {
+        (self.x, self.y, self.z)
     }
 
     pub fn from_usize(n: usize) -> Self {
@@ -31,26 +34,6 @@ impl Desktop {
             z: self.z,
         }
     }
-
-    pub fn to_active(self, active_ns: &[usize]) -> DesktopActive {
-        let n = self.to_usize();
-        let active = active_ns.contains(&n);
-        DesktopActive {
-            x: self.x,
-            y: self.y,
-            z: self.z,
-            active,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-#[derive(Serialize)]
-pub struct DesktopActive {
-    x: usize,
-    y: usize,
-    z: usize,
-    active: bool,
 }
 
 #[cfg(test)]

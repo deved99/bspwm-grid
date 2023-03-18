@@ -1,10 +1,10 @@
 use std::process::Command;
 
-use super::{Error, Result, BSPC};
+use crate::{Error, Result, BSPC, desktop};
 
 pub fn watch_desktop() -> Result<impl Iterator<Item = Result<String>>> {
     let args = ["subscribe", "desktop"];
-    let lines = super::command_lines(BSPC, &args)?;
+    let lines = crate::command_lines(BSPC, &args)?;
     Ok(lines)
 }
 
@@ -17,7 +17,7 @@ pub fn get_focused_desktop() -> Result<usize> {
     Ok(n)
 }
 
-pub fn get_active_desktop() -> Result<Vec<usize>> {
+pub fn get_active_desktop() -> Result<Vec<desktop::Desktop>> {
     let cmd = Command::new(BSPC)
         .args(["query", "--desktops", "-d", ".active", "--names"])
         .output()?;
@@ -26,6 +26,7 @@ pub fn get_active_desktop() -> Result<Vec<usize>> {
     res.lines()
         .map(|x| x.trim().parse())
         .map(|x| x.map_err(Error::from))
+        .map(|x| x.map(desktop::Desktop::from_usize))
         .collect()
 }
 
