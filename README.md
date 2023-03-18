@@ -1,0 +1,2 @@
+# BSPWM-grid
+This script 

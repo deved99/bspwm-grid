@@ -34,6 +34,13 @@ impl Desktop {
             z: self.z,
         }
     }
+    pub fn with_row(self, y: usize) -> Self {
+        Self {
+            x: self.x,
+            y,
+            z: self.z,
+        }
+    }
 }
 
 #[cfg(test)]

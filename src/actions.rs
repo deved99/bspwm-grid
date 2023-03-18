@@ -2,8 +2,20 @@ use std::collections::HashMap;
 
 use itertools::iproduct;
 
-use crate::{bspc, desktop, Error, Result, COLUMNS, ROWS};
 use crate::monitor_status::MonitorStatus;
+use crate::{bspc, desktop, Error, Result, COLUMNS, ROWS};
+
+pub fn set_desktops() -> Result<()> {
+    let monitors = bspc::get_monitors()?;
+    for (n, monitor) in monitors.iter().enumerate() {
+        let workspaces: Vec<usize> = iproduct!(0..COLUMNS, 0..ROWS)
+            .map(|(x, y)| desktop::Desktop::new(x, y, n))
+            .map(|ws| ws.to_usize())
+            .collect();
+        bspc::set_desktops(&workspaces, monitor)?
+    }
+    Ok(())
+}
 
 pub fn watch_desktop() -> Result<()> {
     // Get all desktops
@@ -22,7 +34,7 @@ fn print_active_desktops() -> Result<()> {
     let ns: HashMap<usize, (usize, usize)> = bspc::get_active_desktop()?
         .iter()
         .map(|x| x.get_coords())
-        .map(|(x,y,z)| (z,(x,y)))
+        .map(|(x, y, z)| (z, (x, y)))
         .collect();
     let monitors: HashMap<String, MonitorStatus> = bspc::get_monitors()?
         .into_iter()
@@ -66,14 +78,33 @@ pub fn column_send(x: usize) -> Result<()> {
     bspc::send_to_desktop(ws.to_usize())
 }
 
-pub fn set_desktops() -> Result<()> {
-    let monitors = bspc::get_monitors()?;
-    for (n, monitor) in monitors.iter().enumerate() {
-        let workspaces: Vec<usize> = iproduct!(0..COLUMNS, 0..ROWS)
-            .map(|(x, y)| desktop::Desktop::new(x, y, n))
-            .map(|ws| ws.to_usize())
-            .collect();
-        bspc::set_desktops(&workspaces, monitor)?
+fn row_check(x: usize) -> Result<()> {
+    match x < ROWS {
+        true => Ok(()),
+        false => Err(Error::RowTooHigh {
+            given: x,
+            limit: COLUMNS,
+        }),
     }
-    Ok(())
+}
+
+pub fn row_focus(x: usize) -> Result<()> {
+    row_check(x)?;
+    let n = bspc::get_focused_desktop()?;
+    let ws = desktop::Desktop::from_usize(n).with_row(x);
+    bspc::focus_desktop(ws.to_usize())
+}
+
+pub fn row_send(x: usize) -> Result<()> {
+    row_check(x)?;
+    if x >= COLUMNS {
+        let err = Error::ColumnTooHigh {
+            given: x,
+            limit: COLUMNS,
+        };
+        return Err(err);
+    }
+    let n = bspc::get_focused_desktop()?;
+    let ws = desktop::Desktop::from_usize(n).with_row(x);
+    bspc::send_to_desktop(ws.to_usize())
 }

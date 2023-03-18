@@ -8,7 +8,7 @@ pub mod monitor_status;
 pub use error::{Error, Result};
 
 const BSPC: &'static str = "bspc";
-const ROWS: usize = 1;
+const ROWS: usize = 5;
 const COLUMNS: usize = 5;
 const COLUMNS_ARRAY: [usize; COLUMNS] = get_columns_array();
 const GRID_AREA: usize = ROWS * COLUMNS;
