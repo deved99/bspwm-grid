@@ -24,11 +24,20 @@ pub fn get_desktop() -> Result<()> {
         .map(|x| x.get_coords())
         .map(|(x, y, z)| (z, (x, y)))
         .collect();
+    let occupied_ns = bspc::get_occupied_desktop()?;
+    let occupied_on = |monitor| {
+        occupied_ns
+            .iter()
+            .map(|d| d.get_coords())
+            .filter(|(_, _, z)| *z == monitor)
+            .map(|(x, _, _)| x)
+            .collect()
+    };
     let monitors: HashMap<String, MonitorStatus> = bspc::get_monitors()?
         .into_iter()
         .enumerate()
-        .map(|(z, s)| (s, ns[&z]))
-        .map(|(s, (x, y))| (s, MonitorStatus::new(x, y)))
+        .map(|(z, s)| (s, ns[&z], occupied_on(z)))
+        .map(|(s, (x, y), o)| (s, MonitorStatus::new(x, y, o)))
         .collect();
     let json = serde_json::to_string(&monitors)?;
     println!("{}", json);

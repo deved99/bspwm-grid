@@ -1,6 +1,8 @@
 use std::process::Command;
 
-use crate::{Error, Result, BSPC, desktop};
+use crate::{desktop, Error, Result, BSPC};
+
+// Get desktop(s)
 
 pub fn get_focused_desktop() -> Result<usize> {
     let cmd = Command::new(BSPC)
@@ -24,6 +26,21 @@ pub fn get_active_desktop() -> Result<Vec<desktop::Desktop>> {
         .collect()
 }
 
+pub fn get_occupied_desktop() -> Result<Vec<desktop::Desktop>> {
+    let cmd = Command::new(BSPC)
+        .args(["query", "--desktops", "-d", ".occupied", "--names"])
+        .output()?;
+    let res = String::from_utf8(cmd.stdout)?;
+    // res.trim().parse()?;
+    res.lines()
+        .map(|x| x.trim().parse())
+        .map(|x| x.map_err(Error::from))
+        .map(|x| x.map(desktop::Desktop::from_usize))
+        .collect()
+}
+
+// Focus/send-to desktop
+
 pub fn focus_desktop(n: usize) -> Result<()> {
     let s = n.to_string();
     Command::new(BSPC)
@@ -39,6 +56,8 @@ pub fn send_to_desktop(n: usize) -> Result<()> {
         .status()?;
     Ok(())
 }
+
+// Monitor
 
 pub fn get_monitors() -> Result<Vec<String>> {
     let cmd = Command::new(BSPC)
