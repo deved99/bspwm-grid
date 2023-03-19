@@ -2,12 +2,6 @@ use std::process::Command;
 
 use crate::{Error, Result, BSPC, desktop};
 
-pub fn watch_desktop() -> Result<impl Iterator<Item = Result<String>>> {
-    let args = ["subscribe", "desktop"];
-    let lines = crate::command_lines(BSPC, &args)?;
-    Ok(lines)
-}
-
 pub fn get_focused_desktop() -> Result<usize> {
     let cmd = Command::new(BSPC)
         .args(["query", "--desktops", "-d", ".focused", "--names"])

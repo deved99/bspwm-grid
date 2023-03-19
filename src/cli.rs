@@ -17,7 +17,7 @@ impl Cli {
 #[argh(subcommand)]
 enum Subcommands {
     SetDesktops(SetDesktops),
-    WatchDesktop(WatchDesktop),
+    GetDesktop(GetDesktop),
     ColumnFocus(ColumnFocus),
     ColumnSend(ColumnSend),
     RowFocus(RowFocus),
@@ -27,7 +27,7 @@ impl Subcommands {
     fn run(&self) -> Result<()> {
         match self {
             Self::SetDesktops(_) => actions::set_desktops(),
-            Self::WatchDesktop(_) => actions::watch_desktop(),
+            Self::GetDesktop(_) => actions::get_desktop(),
             Self::ColumnFocus(x) => x.run(),
             Self::ColumnSend(x) => x.run(),
             Self::RowFocus(x) => x.run(),
@@ -38,8 +38,8 @@ impl Subcommands {
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// Test
-#[argh(subcommand, name = "watch-desktop")]
-struct WatchDesktop {}
+#[argh(subcommand, name = "get-desktop")]
+struct GetDesktop {}
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// Create desktops.

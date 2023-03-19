@@ -17,19 +17,7 @@ pub fn set_desktops() -> Result<()> {
     Ok(())
 }
 
-pub fn watch_desktop() -> Result<()> {
-    // Get all desktops
-    print_active_desktops()?;
-    // Than watch for changes
-    let args = ["subscribe", "desktop"];
-    let lines = crate::command_lines("bspc", &args)?;
-    for _ in lines {
-        print_active_desktops()?;
-    }
-    Ok(())
-}
-
-fn print_active_desktops() -> Result<()> {
+pub fn get_desktop() -> Result<()> {
     // Get current monitors
     let ns: HashMap<usize, (usize, usize)> = bspc::get_active_desktop()?
         .iter()
