@@ -1,4 +1,4 @@
-use crate::{actions, Result};
+use crate::{actions, desktop, Result};
 use argh::FromArgs;
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -53,7 +53,8 @@ struct SetDesktops {}
 #[argh(subcommand, name = "column-focus")]
 struct ColumnFocus {
     #[argh(positional)]
-    x: usize,
+    /// column number.
+    x: desktop::Target,
 }
 impl ColumnFocus {
     fn run(&self) -> Result<()> {
@@ -66,7 +67,8 @@ impl ColumnFocus {
 #[argh(subcommand, name = "column-send")]
 struct ColumnSend {
     #[argh(positional)]
-    x: usize,
+    /// column number.
+    x: desktop::Target,
 }
 impl ColumnSend {
     fn run(&self) -> Result<()> {
@@ -79,7 +81,8 @@ impl ColumnSend {
 #[argh(subcommand, name = "row-focus")]
 struct RowFocus {
     #[argh(positional)]
-    y: usize,
+    /// row number.
+    y: desktop::Target,
 }
 impl RowFocus {
     fn run(&self) -> Result<()> {
@@ -92,7 +95,8 @@ impl RowFocus {
 #[argh(subcommand, name = "row-send")]
 struct RowSend {
     #[argh(positional)]
-    y: usize,
+    /// row number.
+    y: desktop::Target,
 }
 impl RowSend {
     fn run(&self) -> Result<()> {

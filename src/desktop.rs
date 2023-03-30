@@ -1,4 +1,53 @@
-use crate::{COLUMNS, GRID_AREA, ROWS};
+use std::str::FromStr;
+use crate::{Error, Result, COLUMNS, GRID_AREA, ROWS};
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Target {
+    Next(usize),
+    Prev(usize),
+    Absolute(usize),
+}
+
+impl FromStr for Target {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
+        match s.starts_with(['+', '-']) {
+            true => {
+                let z: isize = s.parse()?;
+                let n = z.abs_diff(0);
+                let r = match z > 0 {
+                    true => Self::Next(n),
+                    false => Self::Prev(n),
+                };
+                Ok(r)
+            },
+            false => {
+                let z: usize = s.parse()?;
+                Ok(Self::Absolute(z))
+            },
+        }
+    }
+}
+
+fn column_check(x: usize) -> Result<()> {
+    match x < COLUMNS {
+        true => Ok(()),
+        false => Err(Error::ColumnTooHigh {
+            given: x,
+            limit: COLUMNS,
+        }),
+    }
+}
+
+fn row_check(x: usize) -> Result<()> {
+    match x < ROWS {
+        true => Ok(()),
+        false => Err(Error::RowTooHigh {
+            given: x,
+            limit: COLUMNS,
+        }),
+    }
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Desktop {
@@ -27,19 +76,33 @@ impl Desktop {
         self.x + self.y * COLUMNS + self.z * GRID_AREA
     }
 
-    pub fn with_column(self, x: usize) -> Self {
-        Self {
+    pub fn with_column(self, x: Target) -> Result<Self> {
+        let x = match x {
+            Target::Next(n) => self.x + n,
+            Target::Prev(n) => self.x - n,
+            Target::Absolute(n) => n,
+        };
+        column_check(x)?;
+        let res = Self {
             x,
             y: self.y,
             z: self.z,
-        }
+        };
+        Ok(res)
     }
-    pub fn with_row(self, y: usize) -> Self {
-        Self {
+    pub fn with_row(self, y: Target) -> Result<Self> {
+        let y = match y {
+            Target::Next(n) => self.y + n,
+            Target::Prev(n) => self.y - n,
+            Target::Absolute(n) => n,
+        };
+        row_check(y)?;
+        let res = Self {
             x: self.x,
             y,
             z: self.z,
-        }
+        };
+        Ok(res)
     }
 }
 
