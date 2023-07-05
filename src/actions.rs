@@ -45,26 +45,21 @@ pub fn get_desktop() -> Result<()> {
     Ok(())
 }
 
-pub fn column_focus(x: desktop::Target) -> Result<()> {
-    let n = bspc::get_focused_desktop()?;
-    let ws = desktop::Desktop::from_usize(n).with_column(x)?;
-    bspc::focus_desktop(ws.to_usize())
+pub fn focus(
+    x: Option<desktop::Target>,
+    y: Option<desktop::Target>,
+    screen: Option<&str>,
+) -> Result<()> {
+    let target = desktop::Desktop::get_relative(x, y, screen)?;
+    bspc::focus_desktop(target.to_usize())
 }
 
-pub fn column_send(x: desktop::Target) -> Result<()> {
-    let n = bspc::get_focused_desktop()?;
-    let ws = desktop::Desktop::from_usize(n).with_column(x)?;
-    bspc::send_to_desktop(ws.to_usize())
+pub fn send(
+    x: Option<desktop::Target>,
+    y: Option<desktop::Target>,
+    screen: Option<&str>,
+) -> Result<()> {
+    let target = desktop::Desktop::get_relative(x, y, screen)?;
+    bspc::send_to_desktop(target.to_usize())
 }
 
-pub fn row_focus(x: desktop::Target) -> Result<()> {
-    let n = bspc::get_focused_desktop()?;
-    let ws = desktop::Desktop::from_usize(n).with_row(x)?;
-    bspc::focus_desktop(ws.to_usize())
-}
-
-pub fn row_send(x: desktop::Target) -> Result<()> {
-    let n = bspc::get_focused_desktop()?;
-    let ws = desktop::Desktop::from_usize(n).with_row(x)?;
-    bspc::send_to_desktop(ws.to_usize())
-}

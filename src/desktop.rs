@@ -1,5 +1,5 @@
+use crate::{bspc, Error, Result, COLUMNS, GRID_AREA, ROWS};
 use std::str::FromStr;
-use crate::{Error, Result, COLUMNS, GRID_AREA, ROWS};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Target {
@@ -20,11 +20,11 @@ impl FromStr for Target {
                     false => Self::Prev(n),
                 };
                 Ok(r)
-            },
+            }
             false => {
                 let z: usize = s.parse()?;
                 Ok(Self::Absolute(z))
-            },
+            }
         }
     }
 }
@@ -65,6 +65,29 @@ impl Desktop {
         (self.x, self.y, self.z)
     }
 
+    pub fn get_relative(
+        x: Option<Target>,
+        y: Option<Target>,
+        screen: Option<&str>,
+    ) -> Result<Self> {
+        let n = bspc::get_focused_desktop()?;
+        let mut target = Self::from_usize(n);
+        if let Some(s) = x {
+            target = target.with_column(s)?;
+        }
+        if let Some(s) = y {
+            target = target.with_row(s)?;
+        }
+        if let Some(s) = screen {
+            let monitors = bspc::get_monitors()?;
+            let z_maybe = monitors.iter().position(|i| i == s);
+            if let Some(z) = z_maybe {
+                target = target.with_screen(z)?;
+            }
+        }
+        Ok(target)
+    }
+
     pub fn from_usize(n: usize) -> Self {
         let x = n % COLUMNS;
         let y = (n / COLUMNS) % ROWS;
@@ -101,6 +124,15 @@ impl Desktop {
             x: self.x,
             y,
             z: self.z,
+        };
+        Ok(res)
+    }
+
+    pub fn with_screen(self, z: usize) -> Result<Self> {
+        let res = Self {
+            x: self.x,
+            y: self.y,
+            z,
         };
         Ok(res)
     }

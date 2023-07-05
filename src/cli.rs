@@ -18,26 +18,22 @@ impl Cli {
 enum Subcommands {
     SetDesktops(SetDesktops),
     GetDesktop(GetDesktop),
-    ColumnFocus(ColumnFocus),
-    ColumnSend(ColumnSend),
-    RowFocus(RowFocus),
-    RowSend(RowSend),
+    Focus(Focus),
+    Send(SendWindow),
 }
 impl Subcommands {
     fn run(&self) -> Result<()> {
         match self {
             Self::SetDesktops(_) => actions::set_desktops(),
             Self::GetDesktop(_) => actions::get_desktop(),
-            Self::ColumnFocus(x) => x.run(),
-            Self::ColumnSend(x) => x.run(),
-            Self::RowFocus(x) => x.run(),
-            Self::RowSend(x) => x.run(),
+            Self::Focus(x) => x.run(),
+            Self::Send(x) => x.run(),
         }
     }
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Test
+/// Get current state of desktops.
 #[argh(subcommand, name = "get-desktop")]
 struct GetDesktop {}
 
@@ -46,60 +42,42 @@ struct GetDesktop {}
 #[argh(subcommand, name = "init")]
 struct SetDesktops {}
 
-// Column related //
-
 #[derive(FromArgs, PartialEq, Debug)]
-/// Focus given column.
-#[argh(subcommand, name = "column-focus")]
-struct ColumnFocus {
-    #[argh(positional)]
-    /// column number.
-    x: desktop::Target,
+/// Change focused desktop.
+#[argh(subcommand, name = "focus")]
+struct Focus {
+    /// column to switch to
+    #[argh(option, short = 'x')]
+    column: Option<desktop::Target>,
+    /// row to switch to
+    #[argh(option, short = 'y')]
+    row: Option<desktop::Target>,
+    /// desktop to switch to
+    #[argh(option, short = 'z')]
+    desktop: Option<String>,
 }
-impl ColumnFocus {
+impl Focus {
     fn run(&self) -> Result<()> {
-        actions::column_focus(self.x)
+        actions::focus(self.column, self.row, self.desktop.as_deref())
     }
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Send to given column.
-#[argh(subcommand, name = "column-send")]
-struct ColumnSend {
-    #[argh(positional)]
-    /// column number.
-    x: desktop::Target,
+/// Send current window to desktop.
+#[argh(subcommand, name = "send")]
+struct SendWindow {
+    /// column to switch to
+    #[argh(option, short = 'x')]
+    column: Option<desktop::Target>,
+    /// row to switch to
+    #[argh(option, short = 'y')]
+    row: Option<desktop::Target>,
+    /// desktop to switch to
+    #[argh(option, short = 'z')]
+    desktop: Option<String>,
 }
-impl ColumnSend {
+impl SendWindow {
     fn run(&self) -> Result<()> {
-        actions::column_send(self.x)
-    }
-}
-
-#[derive(FromArgs, PartialEq, Debug)]
-/// Focus given row.
-#[argh(subcommand, name = "row-focus")]
-struct RowFocus {
-    #[argh(positional)]
-    /// row number.
-    y: desktop::Target,
-}
-impl RowFocus {
-    fn run(&self) -> Result<()> {
-        actions::row_focus(self.y)
-    }
-}
-
-#[derive(FromArgs, PartialEq, Debug)]
-/// Send to given row.
-#[argh(subcommand, name = "row-send")]
-struct RowSend {
-    #[argh(positional)]
-    /// row number.
-    y: desktop::Target,
-}
-impl RowSend {
-    fn run(&self) -> Result<()> {
-        actions::row_send(self.y)
+        actions::send(self.column, self.row, self.desktop.as_deref())
     }
 }
